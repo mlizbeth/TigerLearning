@@ -1,4 +1,4 @@
-package io.valhala.tigerlearning;
+package io.valhala.tigerlearning.app;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("io.valhala.tigerlearning", appContext.getPackageName());
+        assertEquals("io.valhala.tigerlearning.app.test", appContext.getPackageName());
     }
 }

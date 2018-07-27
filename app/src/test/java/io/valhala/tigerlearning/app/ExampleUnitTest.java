@@ -1,4 +1,4 @@
-package io.valhala.tigerlearning;
+package io.valhala.tigerlearning.app;
 
 import org.junit.Test;
 
