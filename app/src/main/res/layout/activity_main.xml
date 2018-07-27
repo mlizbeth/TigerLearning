@@ -20,7 +20,7 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Next Activity"
+        android:text="Next Activity (DEBUG)"
         tools:layout_editor_absoluteX="539dp"
         tools:layout_editor_absoluteY="589dp" />
 
