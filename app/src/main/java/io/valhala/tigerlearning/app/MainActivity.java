@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +25,7 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
-
+    private Student student = new Student();
     private static final int frequency = 44100;
     private static final int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
@@ -199,9 +198,12 @@ public class MainActivity extends Activity {
 
         protected void onPostExecute(ParseResult result) {
             if (result != null) {
-                String str = "Data:\r\n" + result.data + "\r\n\r\n";
-                if (result.errorCode == 0)
-                    str += "Success";
+                String str = result.data;
+
+                if (result.errorCode == 0) {
+                    //str += "Success!";
+                    Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
+                }
                 else {
                     String err = Integer.toString(result.errorCode);
                     switch (result.errorCode) {
@@ -231,22 +233,21 @@ public class MainActivity extends Activity {
                         }
                     }
 
-                    str += "Error: " + err;
+                    str += err;
                 }
-
-
-                //SetText(result.errorCode == 0, str);
+                verifyID(str);
                 Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
-            } else
-                //SetText(false, "[Parse Error]");
 
-            //Now start the task again
+            }
+
             task = null;
             task = new MonitorAudioTask();
 
             task.execute(null, null, null);
         }
     }
+
+
 
 
     private void configureButton() {
@@ -259,6 +260,25 @@ public class MainActivity extends Activity {
                 startActivity(i);
             }
         });
+    }
+
+
+    private void verifyID(String data) {
+        String[] delimiter = {";", "?"};
+        int min_length = 9, max_length = 11;
+        if(data.length() == min_length) {
+            String temp = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
+            System.out.println(temp);
+        }
+        else if(data.length() == max_length) {
+            String temp = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
+            System.out.println(temp);
+        }
+        else {
+            //assume the card didn't scan properly.
+        }
+
+        //from here, return the student object & pass that object to the new view?
     }
 
 
