@@ -34,14 +34,17 @@ public class SelectionActivity extends AppCompatActivity {
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 for (int x = 0; x < options.length; x++) {
+
                     if (options[x].isChecked()) {
                         reason += options[x].getText() + "\n";
-                    } else {
-
                     }
                 }
-                if (!(e.getText().equals(""))) {
+                if(!(e.getText().equals(""))) {
                     reason += e.getText();
+                }
+                if(reason.equals(null) || reason.equals("")) {
+                    Toast.makeText(getApplicationContext(), "You must select at least one option", Toast.LENGTH_LONG).show();
+                    return;
                 }
 
                 student = new Student(barcode + "\n", reason);
