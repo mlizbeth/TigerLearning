@@ -1,10 +1,10 @@
-package io.valhala.tigerlearning.app;
+package io.valhala.tigerlearningcommons;
 
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -12,20 +12,17 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
-    private Student student = new Student();
+    private String barcode;
     private static final int frequency = 44100;
     private static final int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
@@ -44,6 +41,7 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
+
 
         configureButton();
     }
@@ -251,12 +249,13 @@ public class MainActivity extends Activity {
 
 
     private void configureButton() {
-        Button b = findViewById(R.id.button);
+        Button b = (Button) findViewById(R.id.button);
         b.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, SelectionActivity.class);
+                i.putExtra("barcode", barcode);
                 startActivity(i);
             }
         });
@@ -267,12 +266,10 @@ public class MainActivity extends Activity {
         String[] delimiter = {";", "?"};
         int min_length = 9, max_length = 11;
         if(data.length() == min_length) {
-            String temp = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
-            System.out.println(temp);
+            barcode = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
         }
         else if(data.length() == max_length) {
-            String temp = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
-            System.out.println(temp);
+            barcode = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
         }
         else {
             //assume the card didn't scan properly.
@@ -284,3 +281,4 @@ public class MainActivity extends Activity {
 
 
 }
+
