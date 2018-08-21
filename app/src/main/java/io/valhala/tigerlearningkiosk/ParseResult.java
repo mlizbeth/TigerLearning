@@ -1,4 +1,4 @@
-package io.valhala.tigerlearningcommons;
+package io.valhala.tigerlearningkiosk;
 
 
 public class ParseResult

@@ -1,9 +1,7 @@
-package io.valhala.tigerlearningcommons;
+package io.valhala.tigerlearningkiosk;
 
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.Manifest;
-import android.content.Intent;
+import android.accounts.Account;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -12,53 +10,69 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.view.View;
-import android.widget.Button;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.widget.Toast;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class MainActivity extends AppCompatActivity {
 
+    private final String spreadsheetId = "11fenXfjZhCiojdGMgx_9l2oDPU9Jj4c6_0YVi2Ahuyg";
+    private Account account;
     private String barcode;
+    private NetHttpTransport HTTP_TRANSPORT;
+    private GoogleAccountCredential credential;
+    private GoogleSignInAccount signInAccount;
     private static final int frequency = 44100;
     private static final int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
     private int bufferSize;
     private AudioRecord audioRecord;
     private AsyncTask<Void, Void, ParseResult> task;
-    private boolean good;
-    private String data;
     private static final int REQUEST_CODE_ASK_PERM = 1;
-    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO};
+    private static final int REQUEST_CODE_SIGN_IN = 0;
+    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS};
+    private static final String APPLICATION_NAME = "Tiger Learning Kiosk";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private Sheets service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        checkPermissions();
-
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
-
-
-        configureButton();
-    }
-
-    private void init() {
+        checkPermissions();
         try {
             bufferSize = AudioRecord.getMinBufferSize(frequency, channelConfig, audioEncoding) * 8;
             audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfig, audioEncoding, bufferSize);
         } catch(Exception e) {}
 
+        if(account != null) {
+            new write().execute();
+        }
+        else { new Login().execute(); }
         setContentView(R.layout.activity_main);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        //SetText(good, data);
         audioRecord.startRecording();
         task = new MonitorAudioTask();
         task.execute(null, null, null);
@@ -70,19 +84,6 @@ public class MainActivity extends AppCompatActivity {
         task.cancel(true);
         audioRecord.stop();
     }
-
-    /*private void SetText(boolean good, String text) {
-        this.good = good;
-        data = text;
-        TextView t = (TextView) findViewById(R.id.text);
-        t.setText(data);
-
-        if (good) {
-            t.setTextColor(Color.GREEN);
-        } else {
-            t.setTextColor(Color.RED);
-        }
-    }*/
 
     protected void checkPermissions() {
         final List<String> missingPermissions = new ArrayList<String>();
@@ -110,11 +111,87 @@ public class MainActivity extends AppCompatActivity {
                     if(grantResults[index] != PackageManager.PERMISSION_GRANTED) {
                         Toast.makeText(this, "Required permission '" + permission[index] + "' not granted, exiting", Toast.LENGTH_LONG).show();
                         finish();
-                        //System.exit(1);
                         return;
                     }
                 }
-                init();
+        }
+    }
+
+    private void verifyID(String data) {
+        String[] delimiter = {";", "?"};
+        int min_length = 9, max_length = 11;
+        if(data.length() == min_length) {
+            barcode = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
+        }
+        else if(data.length() == max_length) {
+            barcode = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
+        }
+        else { }
+    }
+
+
+    private class write extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String[] args) {
+
+            try {
+                service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
+                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
+                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
+            } catch (IOException e) {
+            }
+            return "kappa";
+        }
+    }
+
+    private class Login extends AsyncTask<String, Void, String> {
+
+        private Account signIn() {
+            GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestScopes(new Scope(SheetsScopes.DRIVE))
+                    .requestScopes(new Scope(SheetsScopes.DRIVE_FILE))
+                    .requestScopes(new Scope(SheetsScopes.SPREADSHEETS))
+                    .build();
+            GoogleSignInClient signInClient = GoogleSignIn.getClient(MainActivity.this, options);
+            startActivityForResult(signInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+            return GoogleSignIn.getLastSignedInAccount(MainActivity.this).getAccount();
+        }
+
+        @Override
+        protected String doInBackground(String[] params) {
+
+            try {
+                HTTP_TRANSPORT = new com.google.api.client.http.javanet.NetHttpTransport();
+                signInAccount = GoogleSignIn.getLastSignedInAccount(MainActivity.this);
+
+                if (signInAccount != null)
+                    account = signInAccount.getAccount();
+
+                else
+                    account = signIn();
+
+                credential = GoogleAccountCredential.usingOAuth2(
+                        MainActivity.this,
+                        Arrays.asList("https://www.googleapis.com/auth/drive",
+                                "https://www.googleapis.com/auth/drive.file",
+                                "https://www.googleapis.com/auth/spreadsheets") //give it everything
+                );
+
+                credential.setSelectedAccountName("mkotara@trinity.edu");
+
+                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
+                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
+                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
+            } catch (Exception e) {
+            }
+            return "true";
         }
     }
 
@@ -245,40 +322,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
-
-    private void configureButton() {
-        Button b = (Button) findViewById(R.id.button);
-        b.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, SelectionActivity.class);
-                i.putExtra("barcode", barcode);
-                startActivity(i);
-            }
-        });
-    }
-
-
-    private void verifyID(String data) {
-        String[] delimiter = {";", "?"};
-        int min_length = 9, max_length = 11;
-        if(data.length() == min_length) {
-            barcode = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
-        }
-        else if(data.length() == max_length) {
-            barcode = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
-        }
-        else {
-            //assume the card didn't scan properly.
-        }
-
-        //from here, return the student object & pass that object to the new view?
-    }
-
-
-
 }
-

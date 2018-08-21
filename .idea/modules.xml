@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/TigerLearningCommons.iml" filepath="$PROJECT_DIR$/TigerLearningCommons.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TigerLearningKiosk.iml" filepath="$PROJECT_DIR$/TigerLearningKiosk.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
