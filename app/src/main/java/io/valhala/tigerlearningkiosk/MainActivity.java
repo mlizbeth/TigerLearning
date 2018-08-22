@@ -80,11 +80,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
+        verifyID(";083418430?");
         //onValidId();
     }
 
     private void init() {
-        student = null;
+        student = new Student();
         options = new CheckBox[] {findViewById(R.id.option1), findViewById(R.id.option2),
                 findViewById(R.id.option3), findViewById(R.id.option4), findViewById(R.id.option5),
                 findViewById(R.id.option6), findViewById(R.id.option7), findViewById(R.id.option8),
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onValidId() {
+        reason = "";
         for (int x = 0; x < options.length; x++) {
             options[x].setVisibility(View.VISIBLE);
         }
@@ -121,13 +123,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if(!(otherOpt.getText().equals(""))) {
-                reason += otherOpt.getText();
+                reason += otherOpt.getText() +"\n";
             }
 
             student.setReason(reason);
             student.setTimeStamp();
+            System.out.println("Executing task...");
+            new write().execute();
         });
-        new write().execute();
+
     }
 
     @Override
@@ -248,12 +252,12 @@ public class MainActivity extends AppCompatActivity {
 
                 credential.setSelectedAccountName("mkotara@trinity.edu");
 
-                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
-                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
-                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
-                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
+//                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+//                        .setApplicationName(APPLICATION_NAME)
+//                        .build();
+//                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
+//                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
+//                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
             } catch (Exception e) {
             }
             return "true";
