@@ -1,4 +1,17 @@
 <resources>
     <string name="app_name">Tiger Learning Kiosk</string>
     <string name="welcome">Please swipe your Tiger Card to begin</string>
+    <string name="title">Please select the reason(s) for today\'s visit</string>
+    <string name="opt1">Individual Study</string>
+    <string name="opt2">Academic Coaching</string>
+    <string name="opt3">Accommodated Testing Center: Exam</string>
+    <string name="opt4">SAS Appointment</string>
+    <string name="opt5">Writing Center: Peer Tutoring</string>
+    <string name="opt6">writing Center: Appointment</string>
+    <string name="opt7">Spanish: Peer Tutoring</string>
+    <string name="opt8">Group Study</string>
+    <string name="opt9">Workshop</string>
+    <string name="opt10">Other: Specify</string>
+    <string name="submitBtn">Submit</string>
+
 </resources>

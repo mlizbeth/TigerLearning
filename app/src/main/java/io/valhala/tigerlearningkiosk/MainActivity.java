@@ -2,6 +2,7 @@ package io.valhala.tigerlearningkiosk;
 
 import android.Manifest;
 import android.accounts.Account;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -12,6 +13,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -53,6 +59,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String APPLICATION_NAME = "Tiger Learning Kiosk";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private Sheets service;
+    private Student student;
+    private CheckBox[] options;
+    private TextView[] titles;
+    private EditText otherOpt;
+    private Button submitBtn;
+    private String reason;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +76,58 @@ public class MainActivity extends AppCompatActivity {
             audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfig, audioEncoding, bufferSize);
         } catch(Exception e) {}
 
-        if(account != null) {
-            new write().execute();
-        }
-        else { new Login().execute(); }
+        if(account == null) {new Login().execute();}
         setContentView(R.layout.activity_main);
+
+        init();
+        //onValidId();
+    }
+
+    private void init() {
+        student = null;
+        options = new CheckBox[] {findViewById(R.id.option1), findViewById(R.id.option2),
+                findViewById(R.id.option3), findViewById(R.id.option4), findViewById(R.id.option5),
+                findViewById(R.id.option6), findViewById(R.id.option7), findViewById(R.id.option8),
+                findViewById(R.id.option9)};
+        titles = new TextView[] {findViewById(R.id.welcomeText), findViewById(R.id.titleText)};
+        otherOpt = findViewById(R.id.option10);
+        submitBtn = findViewById(R.id.submitBtn);
+        for(int x = 0; x < options.length; x++) {
+            options[x].setVisibility(View.GONE);
+        }
+        titles[0].setVisibility(View.VISIBLE);
+        titles[1].setVisibility(View.GONE);
+        otherOpt.setVisibility(View.GONE);
+        submitBtn.setVisibility(View.GONE);
+    }
+
+    private void onValidId() {
+        for (int x = 0; x < options.length; x++) {
+            options[x].setVisibility(View.VISIBLE);
+        }
+        for (int x = 0; x < titles.length; x++) {
+            if (x == 0) {
+                titles[x].setVisibility(View.GONE);
+            } else {
+                titles[x].setVisibility(View.VISIBLE);
+            }
+        }
+        otherOpt.setVisibility(View.VISIBLE);
+        submitBtn.setVisibility(View.VISIBLE);
+        submitBtn.setOnClickListener(e -> {
+            for(int x = 0; x < options.length; x++) {
+                if(options[x].isChecked()) {
+                    reason += options[x].getText() + "\n";
+                }
+            }
+            if(!(otherOpt.getText().equals(""))) {
+                reason += otherOpt.getText();
+            }
+
+            student.setReason(reason);
+            student.setTimeStamp();
+        });
+        new write().execute();
     }
 
     @Override
@@ -118,13 +178,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void verifyID(String data) {
+        barcode = "";
         String[] delimiter = {";", "?"};
         int min_length = 9, max_length = 11;
         if(data.length() == min_length) {
             barcode = data.substring(data.indexOf(delimiter[0] + 1), data.indexOf(delimiter[1]) - 1);
+            student.setId(barcode);
+            onValidId();
         }
         else if(data.length() == max_length) {
             barcode = data.substring((data.indexOf(delimiter[0]) + 1), data.indexOf(delimiter[1]) - 2);
+            student.setId(barcode);
+            onValidId();
         }
         else { }
     }
@@ -139,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                         .setApplicationName(APPLICATION_NAME)
                         .build();
-                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
+                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList(student.getId(), student.getReason(), student.getTimeStamp())));
                 AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
                         .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
             } catch (IOException e) {
@@ -311,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                     str += err;
                 }
                 verifyID(str);
-                Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
 
             }
 
