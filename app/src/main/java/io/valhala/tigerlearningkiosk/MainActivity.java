@@ -80,8 +80,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
-        verifyID(";083418430?");
-        //onValidId();
+
     }
 
     private void init() {
@@ -251,13 +250,14 @@ public class MainActivity extends AppCompatActivity {
                 );
 
                 credential.setSelectedAccountName("mkotara@trinity.edu");
+                credential.setSelectedAccount(account);
 
-//                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-//                        .setApplicationName(APPLICATION_NAME)
-//                        .build();
-//                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList("theID", "theReason", "theTime")));
-//                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
-//                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
+                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
+                ValueRange append = new ValueRange().setValues(Arrays.asList(Arrays.asList(student.getId(), student.getReason(), student.getTimeStamp())));
+                AppendValuesResponse aResult = service.spreadsheets().values().append(spreadsheetId, "A1", append)
+                        .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
             } catch (Exception e) {
             }
             return "true";
