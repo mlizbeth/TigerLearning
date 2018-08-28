@@ -1,4 +1,5 @@
-package io.valhala.tigerlearning.app;
+package io.valhala.tigerlearningkiosk;
+
 
 public class ParseResult
 {
@@ -11,3 +12,4 @@ public class ParseResult
         this.data = data;
     }
 }
+

@@ -1,4 +1,4 @@
-package io.valhala.tigerlearning.app;
+package io.valhala.tigerlearningkiosk;
 
 import java.util.ArrayList;
 
@@ -229,3 +229,4 @@ public abstract class CardDataParser
         return new ParseResult(ret, result);
     }
 }
+
