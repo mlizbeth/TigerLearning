@@ -8,6 +8,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText otherOpt;
     private Button submitBtn;
     private String reason;
-
+    private boolean done;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
-
     }
 
     private void init() {
@@ -130,7 +130,11 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Executing task...");
             new write().execute();
         });
+    }
 
+    public void onRestart() {
+        super.onRestart();
+        System.out.println("did it work");
     }
 
     @Override
@@ -197,11 +201,21 @@ public class MainActivity extends AppCompatActivity {
         else { }
     }
 
+    private void restart() {
+        if(done) {
+            Intent intent = getIntent();
+            overridePendingTransition(0, 0);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            finish();
+            overridePendingTransition(0, 0);
+            startActivity(intent);
+        }
+    }
 
-    private class write extends AsyncTask<String, Void, String> {
+    private class write extends AsyncTask<String, Void, Boolean> {
 
         @Override
-        protected String doInBackground(String[] args) {
+        protected Boolean doInBackground(String[] args) {
 
             try {
                 service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
@@ -212,7 +226,14 @@ public class MainActivity extends AppCompatActivity {
                         .setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
             } catch (IOException e) {
             }
-            return "kappa";
+            return true;
+        }
+
+        protected void onPostExecute(Boolean status) {
+            if(status == true) {
+                done = true;
+                restart();
+            }
         }
     }
 
@@ -249,8 +270,8 @@ public class MainActivity extends AppCompatActivity {
                                 "https://www.googleapis.com/auth/spreadsheets") //give it everything
                 );
 
-                credential.setSelectedAccountName("mkotara@trinity.edu");
                 credential.setSelectedAccount(account);
+                credential.setSelectedAccountName("mkotara@trinity.edu");
 
                 Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                         .setApplicationName(APPLICATION_NAME)
@@ -380,8 +401,6 @@ public class MainActivity extends AppCompatActivity {
                     str += err;
                 }
                 verifyID(str);
-                //Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
-
             }
 
             task = null;
