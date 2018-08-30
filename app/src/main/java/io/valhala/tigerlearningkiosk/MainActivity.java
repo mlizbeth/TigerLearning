@@ -127,14 +127,8 @@ public class MainActivity extends AppCompatActivity {
 
             student.setReason(reason);
             student.setTimeStamp();
-            System.out.println("Executing task...");
             new write().execute();
         });
-    }
-
-    public void onRestart() {
-        super.onRestart();
-        System.out.println("did it work");
     }
 
     @Override
@@ -208,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             finish();
             overridePendingTransition(0, 0);
+            intent.putExtra("Account", account);
             startActivity(intent);
         }
     }
