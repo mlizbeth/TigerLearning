@@ -7,3 +7,9 @@ Android application for Tiger Learning Commons @ Trinity University
 ### Prompts the user to select the reason(s) for visiting
 ### Generates a timestamp and sends the data to a Drive spreadsheet
 ### Application restarts from the beginning for the next patron
+
+![1](https://github.com/mlizbeth/TigerLearning/blob/master/img/1.png)
+
+![2](https://github.com/mlizbeth/TigerLearning/blob/master/img/2.png)
+
+![3](https://github.com/mlizbeth/TigerLearning/blob/master/img/3.png)
