@@ -30,7 +30,7 @@ public class Student {
     }
 
     public void setTimeStamp() {
-        timeStamp = new SimpleDateFormat("MM/dd/YYYY:HH.mm.ss").format(new Date());
+        timeStamp = new SimpleDateFormat("MM/dd/YYYY HH:mm:ss").format(new Date());
     }
 
     public String getReason() {return reason;}

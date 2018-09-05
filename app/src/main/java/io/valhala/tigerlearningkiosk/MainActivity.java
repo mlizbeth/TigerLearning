@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private AsyncTask<Void, Void, ParseResult> task;
     private static final int REQUEST_CODE_ASK_PERM = 1;
     private static final int REQUEST_CODE_SIGN_IN = 0;
-    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS};
     private static final String APPLICATION_NAME = "Tiger Learning Commons Kiosk";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private Sheets service;
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText otherOpt;
     private Button submitBtn;
     private String reason;
-    private boolean done;
+    private boolean done, valid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +89,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
-
-        //verifyID(";083418430?");
     }
 
     private void init() {
@@ -112,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onValidId() {
+        valid = true;
         reason = "";
         for (int x = 0; x < options.length; x++) {
             options[x].setVisibility(View.VISIBLE);
@@ -305,10 +304,10 @@ public class MainActivity extends AppCompatActivity {
             boolean nonSilence = false;
             ParseResult result = null;
 
-            while (!nonSilence) {
-                if (isCancelled())
-                    break;
+            if(valid) {task.cancel(true);}
 
+            while (!nonSilence) {
+                if (isCancelled()) {break;}
                 bufferReadResult = new Long(audioRecord.read(buffer, 0, bufferSize));
                 if (bufferReadResult > 0) {
                     for (int i = 0; i < bufferReadResult; i++)
@@ -375,10 +374,7 @@ public class MainActivity extends AppCompatActivity {
             if (result != null) {
                 String str = result.data;
 
-                if (result.errorCode == 0) {
-                    task.cancel(true);
-                    task = null;
-                }
+                if (result.errorCode == 0) { } //why is this here maddie¿
                 else {
                     String err = Integer.toString(result.errorCode);
                     switch (result.errorCode) {
@@ -412,10 +408,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 verifyID(str);
             }
-            //task = null;
-            //task = new MonitorAudioTask();
+            task = null;
+            task = new MonitorAudioTask();
 
-            //task.execute(null, null, null);
+            task.execute(null, null, null);
         }
     }
 
