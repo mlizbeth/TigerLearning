@@ -8,6 +8,9 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
+import android.os.Debug;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -35,8 +38,10 @@ import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 
@@ -53,11 +58,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
     private int bufferSize;
     private AudioRecord audioRecord;
+    private AsyncTask<String, Void, Boolean> writeTask;
     private AsyncTask<Void, Void, ParseResult> task;
     private static final int REQUEST_CODE_ASK_PERM = 1;
     private static final int REQUEST_CODE_SIGN_IN = 0;
-    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS};
-    private static final String APPLICATION_NAME = "Tiger Learning Kiosk";
+    private static final String[] REQUIRED_PERMISSION = new String[] {Manifest.permission.RECORD_AUDIO,Manifest.permission.INTERNET, Manifest.permission.GET_ACCOUNTS, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private static final String APPLICATION_NAME = "Tiger Learning Commons Kiosk";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private Sheets service;
     private Student student;
@@ -70,8 +76,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         checkPermissions();
+
         try {
             bufferSize = AudioRecord.getMinBufferSize(frequency, channelConfig, audioEncoding) * 8;
             audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, frequency, channelConfig, audioEncoding, bufferSize);
@@ -81,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
+
+        //verifyID(";083418430?");
     }
 
     private void init() {
@@ -115,7 +125,10 @@ public class MainActivity extends AppCompatActivity {
         }
         otherOpt.setVisibility(View.VISIBLE);
         submitBtn.setVisibility(View.VISIBLE);
+        submitBtn.setEnabled(true);
         submitBtn.setOnClickListener(e -> {
+            submitBtn.setEnabled(false);
+            System.out.println("On click");
             for(int x = 0; x < options.length; x++) {
                 if(options[x].isChecked()) {
                     reason += options[x].getText() + "\n";
@@ -124,10 +137,12 @@ public class MainActivity extends AppCompatActivity {
             if(!(otherOpt.getText().equals(""))) {
                 reason += otherOpt.getText() +"\n";
             }
-
+            System.out.println("build reason");
             student.setReason(reason);
+            System.out.println("build timestamp");
             student.setTimeStamp();
-            new write().execute();
+            System.out.println("pre execution");
+            writeTask = new Write().execute();
         });
     }
 
@@ -207,11 +222,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class write extends AsyncTask<String, Void, Boolean> {
+    private class Write extends AsyncTask<String, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(String[] args) {
-
+            System.out.println("In the task");
             try {
                 service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                         .setApplicationName(APPLICATION_NAME)
@@ -361,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
                 String str = result.data;
 
                 if (result.errorCode == 0) {
-                    //str += "Success!";
-                    Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG).show();
+                    task.cancel(true);
+                    task = null;
                 }
                 else {
                     String err = Integer.toString(result.errorCode);
@@ -397,11 +412,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 verifyID(str);
             }
+            //task = null;
+            //task = new MonitorAudioTask();
 
-            task = null;
-            task = new MonitorAudioTask();
-
-            task.execute(null, null, null);
+            //task.execute(null, null, null);
         }
     }
 
