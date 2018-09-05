@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         submitBtn.setEnabled(true);
         submitBtn.setOnClickListener(e -> {
             submitBtn.setEnabled(false);
-            System.out.println("On click");
             for(int x = 0; x < options.length; x++) {
                 if(options[x].isChecked()) {
                     reason += options[x].getText() + "\n";
@@ -136,11 +135,8 @@ public class MainActivity extends AppCompatActivity {
             if(!(otherOpt.getText().equals(""))) {
                 reason += otherOpt.getText() +"\n";
             }
-            System.out.println("build reason");
             student.setReason(reason);
-            System.out.println("build timestamp");
             student.setTimeStamp();
-            System.out.println("pre execution");
             writeTask = new Write().execute();
         });
     }
@@ -225,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String[] args) {
-            System.out.println("In the task");
             try {
                 service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                         .setApplicationName(APPLICATION_NAME)
