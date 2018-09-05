@@ -8,7 +8,7 @@ Android application for Tiger Learning Commons @ Trinity University
 ### Generates a timestamp and sends the data to a Drive spreadsheet
 ### Application restarts from the beginning for the next patron
 
-## Credits
+# Credits
 ### Authors
 ![Maddie](https://github.com/mlizbeth)
 
